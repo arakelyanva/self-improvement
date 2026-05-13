@@ -6,18 +6,23 @@ def levenshtein_distance(str1: str, str2: str) -> int:
     if len(str1) < len(str2):
         str1, str2 = str2, str1
 
-    if not str2:
-        return len(str1)
+    len1, len2 = len(str1), len(str2)
+    if len2 == 0:
+        return len1
 
-    previous_row = list(range(len(str2) + 1))
+    previous_row = list(range(len2 + 1))
     
     for i, char1 in enumerate(str1):
-        current_row = [i + 1]
+        previous_diagonal = previous_row[0]
+        previous_row[0] = i + 1
         for j, char2 in enumerate(str2):
-            insertions = previous_row[j + 1] + 1
-            deletions = current_row[j] + 1
-            substitutions = previous_row[j] + (char1 != char2)
-            current_row.append(min(insertions, deletions, substitutions))
-        previous_row = current_row
+            old_previous_row_j_plus_1 = previous_row[j + 1]
+            if char1 == char2:
+                previous_row[j + 1] = previous_diagonal
+            else:
+                previous_row[j + 1] = 1 + min(previous_row[j], 
+                                              previous_row[j + 1], 
+                                              previous_diagonal)
+            previous_diagonal = old_previous_row_j_plus_1
 
     return previous_row[-1]
