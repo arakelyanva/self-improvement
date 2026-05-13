@@ -20,7 +20,7 @@ jobs:
           TOKEN=$(curl -X POST \
             -H "Authorization: token ${{ secrets.GH_ACCESS_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            github.com/${{ github.repository }}/actions/runners/registration-token | jq -r .token)
+            https://api.github.com/repos/${{ github.repository }}/actions/runners/registration-token | jq -r .token)
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
       - name: Run Deploy Script
