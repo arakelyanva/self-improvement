@@ -1,0 +1,75 @@
+name: Execute Tests on Hetzner Runner
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  provision_infrastructure:
+    name: Provision Hetzner Node
+    runs-on: ubuntu-latest
+    outputs:
+      registration_token: ${{ steps.get-token.outputs.token }}
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v6
+
+      - name: Fetch Dynamic GitHub Runner Token
+        id: get-token
+        run: |
+          TOKEN=$(curl -X POST \
+            -H "Authorization: token ${{ secrets.GH_ACCESS_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            github.com/${{ github.repository }}/actions/runners/registration-token | jq -r .token)
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Run Deploy Script
+        run: |
+          bash scripts/deploy_runner.sh \
+            "${{ secrets.HETZNER_CLOUD_TOKEN }}" \
+            "${{ secrets.CF_TUNNEL_TOKEN }}" \
+            "${{ steps.get-token.outputs.token }}" \
+            "https://github.com/${{ github.repository }}"
+
+  execute_test_suite:
+    name: Run Test Assertions
+    needs: provision_infrastructure
+    runs-on: [self-hosted, hetzner-vps]
+    steps:
+      - name: Checkout Repository Contents
+        uses: actions/checkout@v6
+
+      - name: Install uv Package Manager
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 'latest'
+          enable-cache: true
+          cache-dependency-glob: 'uv.lock'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Execute tests via UV
+        run: uv run python test_app.py
+
+  teardown_infrastructure:
+    name: Deprovision and Erase Node
+    needs: [provision_infrastructure, execute_test_suite]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Query and Terminate Hetzner Instance
+        run: |
+          # 1. Fetch server ID by target tag or explicit name configuration
+          SERVER_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.HETZNER_CLOUD_TOKEN }}" https://api.hetzner.cloud/v1/servers | jq -r '.servers[] | select(.name=="ephemeral-test-node") | .id')
+          
+          # 2. Tear down instance immediately from cloud provider index
+          if [ ! -z "$SERVER_ID" ] && [ "$SERVER_ID" != "null" ]; then
+            echo "Terminating VPS target reference: $SERVER_ID"
+            curl -X DELETE -H "Authorization: Bearer ${{ secrets.HETZNER_CLOUD_TOKEN }}" "https://api.hetzner.cloud/v1/servers/${SERVER_ID}"
+          else
+            echo "No active infrastructure elements discovered."
+          fi
+
