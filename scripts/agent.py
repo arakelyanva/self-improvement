@@ -14,6 +14,8 @@ REPO_NAME = "arakelyanva/self-improvement"
 FILE_PATH = "app.py"
 BRANCH = "main"
 
+MODEL='gemini-3.1-flash-lite'
+
 try:
     repo = github_client.get_repo(REPO_NAME)
     file_contents = repo.get_contents(FILE_PATH, ref=BRANCH)
@@ -31,7 +33,7 @@ try:
 
     print("[LLM] Sending code to Gemini for adjustments...")
     response = gemini_client.models.generate_content(
-        model='gemini-3.1-flash-lite',
+        model=MODEL,
         contents=prompt
     )
     adjusted_code = response.text.strip()
@@ -39,7 +41,7 @@ try:
     print("[GIT] Committing adjusted code to GitHub...")
     repo.update_file(
         path=FILE_PATH,
-        message="style: automated code optimization by Gemini LLM",
+        message="improvement: automated code optimization by Gemini LLM",
         content=adjusted_code,
         sha=file_contents.sha,
         branch=BRANCH
