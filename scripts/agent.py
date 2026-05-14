@@ -39,14 +39,18 @@ try:
     adjusted_code = response.text.strip()
 
     print("[GIT] Committing adjusted code to GitHub...")
-    repo.update_file(
-        path=FILE_PATH,
-        message="improvement: automated code optimization by Gemini LLM",
-        content=adjusted_code,
-        sha=file_contents.sha,
-        branch=BRANCH
-    )
-    print("[GIT] Successfully committed adjustments!")
+
+    if adjusted_code == original_code:
+        print("[GIT] No changes have been made, nothing to commit.")
+    else:
+        repo.update_file(
+            path=FILE_PATH,
+            message="improvement: automated code optimization by Gemini LLM",
+            content=adjusted_code,
+            sha=file_contents.sha,
+            branch=BRANCH
+        )
+        print("[GIT] Successfully committed adjustments!")
 
 except GithubException as ge:
     print(f"[ERROR] GitHub Error: {ge}")
