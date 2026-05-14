@@ -16,17 +16,15 @@ def levenshtein_distance(str1: str, str2: str) -> int:
         previous_diagonal = previous_row[0]
         previous_row[0] = i + 1
         for j, char2 in enumerate(str2):
-            old_current_row_j_plus_1 = previous_row[j + 1]
+            temp = previous_row[j + 1]
             if char1 == char2:
                 previous_row[j + 1] = previous_diagonal
             else:
-                # Use min of insertion, deletion, and substitution
-                # previous_row[j] is the left cell (insertion)
-                # previous_row[j + 1] is the top cell (deletion)
-                # previous_diagonal is the top-left cell (substitution)
-                insertion = previous_row[j]
-                deletion = previous_row[j + 1]
-                previous_row[j + 1] = 1 + min(insertion, deletion, previous_diagonal)
-            previous_diagonal = old_current_row_j_plus_1
+                previous_row[j + 1] = 1 + min(
+                    previous_row[j],
+                    previous_row[j + 1],
+                    previous_diagonal
+                )
+            previous_diagonal = temp
 
     return previous_row[len2]
