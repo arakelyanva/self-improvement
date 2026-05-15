@@ -1,7 +1,7 @@
 name: Automated Self-Improvement
 on:
-  schedule:
-    - cron: '0 */2 * * *' 
+ # schedule:
+  #  - cron: '0 */2 * * *' 
   workflow_dispatch: # Allows manual pipeline testing
 
 jobs:
