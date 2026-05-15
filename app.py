@@ -24,12 +24,11 @@ def levenshtein_distance(str1: str, str2: str) -> int:
                 # previous_diagonal: substitution
                 # previous_row[j]: insertion
                 # previous_row[j + 1]: deletion
-                val = previous_diagonal
-                if previous_row[j] < val:
-                    val = previous_row[j]
-                if previous_row[j + 1] < val:
-                    val = previous_row[j + 1]
-                previous_row[j + 1] = 1 + val
+                previous_row[j + 1] = 1 + min(
+                    previous_diagonal,
+                    previous_row[j],
+                    previous_row[j + 1]
+                )
             previous_diagonal = current_val
 
     return previous_row[len2]
