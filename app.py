@@ -20,20 +20,8 @@ def levenshtein_distance(str1: str, str2: str) -> int:
             if char1 == char2:
                 previous_row[j + 1] = previous_diagonal
             else:
-                # 1 + min(substitution, insertion, deletion)
-                # previous_diagonal: substitution
-                # previous_row[j]: insertion
-                # previous_row[j + 1]: deletion
-                val1 = previous_diagonal
-                val2 = previous_row[j]
-                val3 = previous_row[j + 1]
-                
-                if val1 <= val2 and val1 <= val3:
-                    previous_row[j + 1] = val1 + 1
-                elif val2 <= val3:
-                    previous_row[j + 1] = val2 + 1
-                else:
-                    previous_row[j + 1] = val3 + 1
+                # Optimized min calculation using built-in min()
+                previous_row[j + 1] = 1 + min(previous_row[j], previous_row[j + 1], previous_diagonal)
             previous_diagonal = current_val
 
     return previous_row[len2]
